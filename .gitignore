@@ -1,0 +1,11 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Downloaded audio + analysis database (regenerated on demand)
+backend/data/
+
+# Node
+frontend/node_modules/
+frontend/dist/
