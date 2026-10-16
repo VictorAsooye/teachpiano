@@ -13,7 +13,7 @@ export const TABS = [
     label: 'Practice',
     items: [
       { id: 'keys', label: 'Keys', desc: 'Learn all 24 keys and play each one' },
-      { id: 'ear', label: 'Your ear', desc: 'Hear chords and find the key' },
+      { id: 'ear', label: 'Your ear', desc: 'Find the key a singer is in' },
       { id: 'style', label: 'Your style', desc: 'Play, and get tips on how it sounded' },
     ],
   },

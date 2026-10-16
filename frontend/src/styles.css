@@ -2836,3 +2836,64 @@ button:disabled {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ---------------- ear trainer: real singers ---------------- */
+
+.drill-switch {
+  align-self: flex-start;
+  margin-bottom: 4px;
+}
+
+/* The key you have chosen but not yet committed to. Distinct from .selected,
+   which the difficulty switches use, because this one is an answer in
+   progress and wants to look pending rather than settled. */
+.root-key.picked {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.singer-mode {
+  align-self: flex-start;
+  margin: 10px 0 16px;
+}
+
+.hunt-hint {
+  margin-top: 16px;
+}
+
+.clip {
+  margin: 4px 0 8px;
+}
+
+/* Stands in for the player before it is mounted, so the card does not jump
+   in height the moment you press play. */
+.clip-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 150px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  text-align: center;
+}
+
+.clip-idle p {
+  max-width: 320px;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+
+.clip-idle-note {
+  font-size: 26px;
+  color: var(--accent);
+}
+
+.clip .controls {
+  margin-top: 12px;
+}

@@ -10,6 +10,7 @@ import {
 import { noteLabel } from '../guess.js'
 import { playMidiSequence, stopAll } from '../player.js'
 import Keyboard from './Keyboard.jsx'
+import SingerEar from './SingerEar.jsx'
 
 const ROOTS = [
   { pc: 0, label: 'C' },
@@ -64,7 +65,7 @@ function differenceText(comparison, useFlats) {
  * learnable, and it is the thing you actually do when working out a singer's
  * key. So the drill plays a cadence first: that gives your ear a home to find.
  */
-export default function EarTrainer({ midi }) {
+function CadenceEar({ midi }) {
   const [level, setLevel] = useState(LEVELS[0])
   const [mode, setMode] = useState('major')
   const [target, setTarget] = useState(null)
@@ -159,7 +160,7 @@ export default function EarTrainer({ midi }) {
     : []
 
   return (
-    <div className="trainer">
+    <>
       <div className="trainer-head">
         <div className="segmented" role="group" aria-label="Difficulty">
           {LEVELS.map((option) => (
@@ -324,6 +325,43 @@ export default function EarTrainer({ midi }) {
           </>
         )}
       </div>
+    </>
+  )
+}
+
+const DRILLS = [
+  { id: 'singers', label: 'Real singers', hint: 'Find the key of a recording' },
+  { id: 'chords', label: 'Four chords', hint: 'The tidy version, to warm up on' },
+]
+
+/**
+ * Two ways to practise the same skill.
+ *
+ * The cadence drill is the clean-room version: four chords, no distractions,
+ * useful when you are starting out. Real singers is the job -- a voice over a
+ * band, where the tonic has to be hunted for rather than handed to you. It
+ * leads, because that is what anyone is here to get better at.
+ */
+export default function EarTrainer({ midi }) {
+  const [drill, setDrill] = useState(DRILLS[0].id)
+
+  return (
+    <div className="trainer">
+      <div className="segmented drill-switch" role="group" aria-label="Which drill">
+        {DRILLS.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            className={drill === option.id ? 'segment selected' : 'segment'}
+            onClick={() => setDrill(option.id)}
+            title={option.hint}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      {drill === 'singers' ? <SingerEar midi={midi} /> : <CadenceEar midi={midi} />}
     </div>
   )
 }
