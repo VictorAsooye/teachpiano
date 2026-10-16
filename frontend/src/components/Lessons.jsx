@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { LESSONS, STAGES } from '../lessons.js'
 import { pathTo } from '../nav.js'
+import LessonVisual from './LessonVisual.jsx'
 
 /** Turn **bold** into real bold, so the lesson text can emphasise the key idea. */
 function RichText({ children }) {
@@ -67,6 +68,8 @@ export default function Lessons({ onGoTo }) {
                     {lesson.learn.map((para, i) => (
                       <RichText key={i}>{para}</RichText>
                     ))}
+
+                    <LessonVisual visual={lesson.visual} />
 
                     <div className="lesson-try">
                       <span className="section-label">Now go and play it</span>

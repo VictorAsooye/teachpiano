@@ -13,6 +13,7 @@ import KeyTrainer from './components/KeyTrainer.jsx'
 import EarTrainer from './components/EarTrainer.jsx'
 import LiveKey from './components/LiveKey.jsx'
 import Lessons from './components/Lessons.jsx'
+import SoundCheck from './components/SoundCheck.jsx'
 import StyleCoach from './components/StyleCoach.jsx'
 import { GROUP_OF, TABS, availableTabs } from './nav.js'
 
@@ -375,6 +376,8 @@ export default function App() {
           ))}
         </div>
       ))}
+
+      <SoundCheck />
 
       {view === 'learn' && <Lessons onGoTo={openView} />}
       {view === 'keys' && <KeyTrainer midi={midi} />}

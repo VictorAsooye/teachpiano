@@ -2267,3 +2267,456 @@ button:disabled {
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
+
+/* ============================================================
+   Lesson visuals
+   Piano is spatial. These are the diagrams in "Learn the piano":
+   a readable keyboard you can press, rows of them for comparing
+   shapes, and two small charts for the things a keyboard cannot
+   show -- loudness and rhythm.
+   ============================================================ */
+
+.lesson-visual {
+  margin: 18px 0 4px;
+}
+
+.lesson-piano {
+  --lk-h: 118px;
+}
+
+.lesson-piano.mini {
+  --lk-h: 86px;
+}
+
+.lk-board {
+  position: relative;
+}
+
+.lk-keys {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  height: var(--lk-h);
+  padding-top: 3px;
+  border-top: 2px solid var(--surface-3);
+  border-radius: 3px 3px 0 0;
+  user-select: none;
+}
+
+/* Keys are real buttons so they can be pressed and heard. Resetting the
+   button chrome rather than using divs keeps keyboard and screen-reader
+   access for free. */
+.lk-key {
+  position: relative;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  transition: background 0.1s ease, transform 0.06s ease;
+}
+
+.lk-white {
+  flex: 1;
+  min-width: 0;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafb 78%, #eeeef1 100%);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.045);
+}
+
+.lk-black {
+  position: absolute;
+  top: 0;
+  height: 61%;
+  background: linear-gradient(180deg, #43434a 0%, #1b1b1f 58%, #2c2c33 100%);
+  border: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.34);
+  z-index: 2;
+}
+
+.lk-key:hover {
+  filter: brightness(0.97);
+}
+
+.lk-black:hover {
+  filter: brightness(1.35);
+}
+
+/* The press flash has to stay visible for the ~250ms a tap lasts, which is
+   why it is a class on a timer and not :active -- a quick tap releases long
+   before the eye registers :active. */
+.lk-tapped {
+  transform: translateY(1px);
+}
+
+.lk-white.lk-tapped {
+  background: linear-gradient(180deg, #d8e9fc 0%, #bcd9f7 100%);
+}
+
+.lk-black.lk-tapped {
+  background: linear-gradient(180deg, #5f7f9e 0%, #2e4a66 100%);
+}
+
+/* ---- the label on a key ---- */
+
+.lk-label {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-3);
+  background: transparent;
+}
+
+.lesson-piano.mini .lk-label {
+  bottom: 5px;
+  min-width: 17px;
+  height: 17px;
+  font-size: 10.5px;
+}
+
+.lk-black .lk-label {
+  bottom: 5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* A marked key is one the lesson is pointing at. Three tones, and because
+   they mean something different in every lesson, the caption always says
+   which is which: blue anchors, orange is what changed, grey is context. */
+.lk-marked .lk-label {
+  color: #fff;
+}
+
+.lk-root .lk-label {
+  background: var(--accent);
+}
+
+.lk-accent .lk-label {
+  background: #e8820c;
+}
+
+.lk-soft .lk-label {
+  background: #8a8a93;
+}
+
+.lk-white.lk-marked {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 55%, #eef3fb 100%);
+}
+
+.lk-white.lk-accent {
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf3 55%, #fdefdc 100%);
+}
+
+/* Sounding right now. Deliberately louder than any marked state -- while a
+   figure plays, "which note is this" has to beat "which note matters". */
+.lk-white.lk-lit {
+  background: linear-gradient(180deg, #6cb6f8 0%, var(--key-lit) 100%);
+  border-color: var(--accent-hover);
+}
+
+.lk-black.lk-lit {
+  background: linear-gradient(180deg, #6cb6f8 0%, var(--key-lit) 58%, #1a7ce0 100%);
+}
+
+.lk-lit .lk-label {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+/* ---- brackets over the black-key groups ---- */
+
+.lk-brackets {
+  position: relative;
+  height: 20px;
+}
+
+.lk-bracket {
+  position: absolute;
+  bottom: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 13px;
+  border: 1.5px solid var(--accent);
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+
+/* The count sits in a notch punched through the top border. */
+.lk-bracket span,
+.lk-bracket {
+  background: linear-gradient(var(--bg), var(--bg)) top center / 15px 3px no-repeat;
+}
+
+/* ---- play button ---- */
+
+.lk-play {
+  margin-top: 10px;
+  padding: 7px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+.lk-play:hover {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.lk-play.wide {
+  margin-top: 14px;
+  padding: 9px 20px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.lk-play.wide:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+
+.lk-caption {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+
+/* ---- a row of small keyboards ---- */
+
+.lk-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.lk-cell {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.lk-cell-title {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.lk-cell-sub {
+  margin-bottom: 12px;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+
+.lk-cell .lk-play {
+  align-self: flex-start;
+}
+
+/* ---- loudness, and beats ---- */
+
+.lk-bars,
+.lk-beats {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.lk-bars + .lk-bars,
+.lk-beats + .lk-beats {
+  margin-top: 10px;
+}
+
+.lk-bars.good,
+.lk-beats.good {
+  border-color: var(--accent-ring);
+  background: var(--accent-soft);
+}
+
+.lk-bars-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lk-bars-note {
+  grid-column: 2;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+
+.lk-bars-track {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 56px;
+}
+
+.lk-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: #b4b4bd;
+}
+
+.lk-bars.good .lk-bar {
+  background: var(--accent);
+}
+
+.lk-beats-track {
+  display: flex;
+  gap: 6px;
+}
+
+.lk-beat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* Two bars of four: the gap after the fourth is what makes them read as bars. */
+.lk-beat:nth-child(4) {
+  margin-right: 14px;
+}
+
+.lk-beat.on {
+  border-style: solid;
+  border-color: transparent;
+  background: #b4b4bd;
+  color: #fff;
+  font-weight: 600;
+}
+
+.lk-beats.good .lk-beat.on {
+  background: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .lesson-piano {
+    --lk-h: 96px;
+  }
+
+  .lk-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .lk-bars,
+  .lk-beats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .lk-bars-note {
+    grid-column: 1;
+  }
+
+  .lk-label {
+    bottom: 6px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 3px;
+    font-size: 10px;
+  }
+}
+
+/* Dark mode keeps the keys light -- a piano with dark white keys reads as a
+   broken piano, not as a themed one. */
+@media (prefers-color-scheme: dark) {
+  .lk-white {
+    background: linear-gradient(180deg, #f4f4f6 0%, #e9e9ee 78%, #d9d9e0 100%);
+    border-color: rgba(0, 0, 0, 0.3);
+  }
+
+  .lk-white.lk-marked {
+    background: linear-gradient(180deg, #f4f6fa 0%, #e6edf8 100%);
+  }
+
+  .lk-white.lk-accent {
+    background: linear-gradient(180deg, #fbf5ec 0%, #f4e6cf 100%);
+  }
+
+  /* Restated after the marked states above. Same specificity, later wins --
+     without this the dark-mode marked rule silently cancels the lit one and
+     nothing visibly moves while a figure plays. */
+  .lk-white.lk-lit {
+    background: linear-gradient(180deg, #6cb6f8 0%, var(--key-lit) 100%);
+  }
+
+  .lk-label {
+    color: #6b6b70;
+  }
+
+  .lk-accent .lk-label {
+    background: #f0920f;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-key {
+    transition: none;
+  }
+}
+
+/* Only ever on screen when the browser is refusing to play audio. */
+.sound-check {
+  display: block;
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 13px 16px;
+  text-align: left;
+  border: 1px solid var(--accent-ring);
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.sound-check strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.sound-check span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
