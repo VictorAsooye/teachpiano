@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { byDifficulty, diatonicTriad, spellScale } from '../keys.js'
-import { analysePerformance } from '../style.js'
+import { analysePerformance, compareTakes } from '../style.js'
 import { midiUnavailableReason } from '../midi.js'
+import StyleStrip from './StyleStrip.jsx'
+import LessonPiano from './LessonPiano.jsx'
 
 const PROGRESSIONS = [
   { id: '1564', label: '1 - 5 - 6 - 4', degrees: [0, 4, 5, 3] },
@@ -10,12 +12,69 @@ const PROGRESSIONS = [
 ]
 
 const NUMERALS = ['1', '2', '3', '4', '5', '6', '7']
+const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B']
+const name = (midi) => NAMES[((midi % 12) + 12) % 12]
+
+/** A keyboard wide enough to hold both voicings, rounded out to whole octaves. */
+function spanFor(notes) {
+  const low = Math.min(...notes)
+  const high = Math.max(...notes)
+  return [Math.min(low, high - 12) - 2, Math.max(high, low + 12) + 2]
+}
+
+/**
+ * Show the worst chord change of the take beside the voicing that would have
+ * avoided it.
+ *
+ * Naming inversions teaches nobody. Two keyboards with your own notes on them,
+ * one travelling half as far as the other, teaches it in a glance.
+ */
+function InversionFix({ worst }) {
+  const span = spanFor([...worst.from, ...worst.to, ...worst.better])
+  const marks = (notes, tone) => notes.map((n) => ({ midi: n, text: name(n), tone }))
+
+  return (
+    <div className="tip-visual">
+      <div className="tip-visual-row">
+        <span className="tip-visual-label">What you played</span>
+        {/* The chord being moved TO is listed first: a key held by both
+            voicings takes the colour of whichever mark comes first, and the
+            one worth looking at is where you landed, not where you were. */}
+        <LessonPiano
+          size="mini"
+          span={span}
+          marks={[...marks(worst.to, 'accent'), ...marks(worst.from, 'soft')]}
+          play={worst.to}
+          playAs="chord"
+          playLabel="Hear the jump"
+        />
+        <span className="tip-visual-note">{worst.distance} semitones to reach it</span>
+      </div>
+
+      <div className="tip-visual-row">
+        <span className="tip-visual-label">Same chord, nearest shape</span>
+        <LessonPiano
+          size="mini"
+          span={span}
+          marks={[...marks(worst.better, 'root'), ...marks(worst.from, 'soft')]}
+          play={worst.better}
+          playAs="chord"
+          playLabel="Hear the inversion"
+        />
+        <span className="tip-visual-note">
+          {worst.better.map(name).join(' ')} — the same notes, right under your hand
+        </span>
+      </div>
+    </div>
+  )
+}
 
 /**
  * Play a progression; get told what would make it sound better.
  *
- * Every tip comes from a number measured in the MIDI, so it can say "your
- * chords land dead flat" rather than generic advice that may not apply.
+ * Every tip comes from a number measured in the MIDI and quotes that number
+ * back, so it reads as "your chords are 9% apart" rather than as advice that
+ * might apply to anyone.
  */
 export default function StyleCoach({ midi }) {
   const [keyIndex, setKeyIndex] = useState(0)
@@ -23,30 +82,48 @@ export default function StyleCoach({ midi }) {
   const [recording, setRecording] = useState(false)
   const [count, setCount] = useState(0)
   const [result, setResult] = useState(null)
+  const [previous, setPrevious] = useState(null)
 
   const keys = byDifficulty('major')
   const key = keys[keyIndex]
   const names = spellScale(key)
 
-  const take = useRef({ events: [], startedAt: 0 })
+  const take = useRef({ events: [], startedAt: 0, open: new Map() })
 
   useEffect(() => {
     if (!midi?.onNote) return undefined
+
     midi.onNote((note, velocity = 0.7) => {
       if (!take.current.recording) return
-      take.current.events.push({
+      const event = {
         note,
         velocity,
         time: (performance.now() - take.current.startedAt) / 1000,
         duration: 0,
-      })
+      }
+      take.current.events.push(event)
+      // Held open until the release lands, so how long you hold a chord can be
+      // measured rather than assumed.
+      take.current.open.set(note, event)
       setCount(take.current.events.length)
     })
-    return () => midi.onNote(null)
+
+    midi.onNoteOff?.((note) => {
+      if (!take.current.recording) return
+      const event = take.current.open.get(note)
+      if (!event) return
+      event.duration = (performance.now() - take.current.startedAt) / 1000 - event.time
+      take.current.open.delete(note)
+    })
+
+    return () => {
+      midi.onNote(null)
+      midi.onNoteOff?.(null)
+    }
   }, [midi])
 
   const start = () => {
-    take.current = { events: [], startedAt: performance.now(), recording: true }
+    take.current = { events: [], startedAt: performance.now(), recording: true, open: new Map() }
     setCount(0)
     setResult(null)
     setRecording(true)
@@ -55,8 +132,17 @@ export default function StyleCoach({ midi }) {
   const stop = () => {
     take.current.recording = false
     setRecording(false)
-    setResult(analysePerformance(take.current.events))
+    // Anything still down when you stopped was held at least this long.
+    const now = (performance.now() - take.current.startedAt) / 1000
+    take.current.open.forEach((event) => {
+      if (!event.duration) event.duration = Math.max(0, now - event.time)
+    })
+    const analysis = analysePerformance(take.current.events)
+    setPrevious(result?.stats || null)
+    setResult(analysis)
   }
+
+  const change = result?.enough ? compareTakes(result.stats, previous) : null
 
   return (
     <div className="trainer">
@@ -133,6 +219,23 @@ export default function StyleCoach({ midi }) {
 
         {result?.enough && (
           <div className="coach-result">
+            <div className="coach-shown">
+              <span className="section-label">What that sounded like</span>
+              <StyleStrip
+                chords={result.chords}
+                seconds={result.stats.seconds}
+                highlight={null}
+              />
+              <p className="keyboard-caption">
+                Each bar is a chord — taller means you hit it harder, wider means you held it
+                longer. A flat, evenly spaced row is the sound of playing like a machine.
+              </p>
+            </div>
+
+            {change && (
+              <p className="coach-change">Since your last go: {change.join(' · ')}.</p>
+            )}
+
             {result.praise.length > 0 && (
               <div className="verdict good">
                 <p className="verdict-main">
@@ -144,17 +247,26 @@ export default function StyleCoach({ midi }) {
             {result.tips.length === 0 ? (
               <p className="trainer-tip">Nothing to fix. Try it in a harder key.</p>
             ) : (
-              result.tips.map((tip) => (
+              result.tips.slice(0, 3).map((tip) => (
                 <div className="coach-tip" key={tip.id}>
                   <strong>{tip.title}</strong>
+                  {tip.evidence && <p className="tip-evidence">{tip.evidence}</p>}
                   <p>{tip.detail}</p>
+                  {tip.id === 'inversions' && tip.worst && <InversionFix worst={tip.worst} />}
                 </div>
               ))
             )}
 
+            {result.tips.length > 3 && (
+              <p className="coach-stats">
+                {result.tips.length - 3} more to work on — fix these first and they often go away.
+              </p>
+            )}
+
             <p className="coach-stats">
-              {result.stats.chords} chords over {result.stats.seconds.toFixed(0)}s · loudest to
-              quietest {Math.round(result.stats.dynamicRange * 100)}%
+              {result.stats.chords} chords over {result.stats.seconds.toFixed(0)}s ·{' '}
+              {result.stats.density.toFixed(1)} a second · loudest to quietest{' '}
+              {Math.round(result.stats.dynamicRange * 100)}%
               {result.stats.usesLeftHand ? ' · left hand in use' : ' · right hand only'}
             </p>
           </div>

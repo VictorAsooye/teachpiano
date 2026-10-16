@@ -2720,3 +2720,119 @@ button:disabled {
   line-height: 1.5;
   color: var(--text-2);
 }
+
+/* ---------------- style coach: the picture of your take ---------------- */
+
+.coach-shown {
+  margin-bottom: 18px;
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 4px 8px;
+  margin-top: 10px;
+}
+
+.strip-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 110px;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+.strip-plot {
+  position: relative;
+  height: 110px;
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  overflow: hidden;
+}
+
+/* Something for a flat take to look flat against. */
+.strip-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--border-strong);
+}
+
+.strip-bar {
+  position: absolute;
+  bottom: 0;
+  min-width: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+  opacity: 0.82;
+}
+
+.strip-bar.lit {
+  background: #e8820c;
+  opacity: 1;
+}
+
+.strip-time {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+.coach-change {
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* The measured number that triggered a tip, set apart from the advice so it
+   reads as evidence rather than as more prose. */
+.tip-evidence {
+  margin: 4px 0 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.tip-visual {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+.tip-visual-row {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+.tip-visual-label {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+}
+
+.tip-visual-note {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+@media (min-width: 941px) {
+  .tip-visual {
+    grid-template-columns: 1fr 1fr;
+  }
+}

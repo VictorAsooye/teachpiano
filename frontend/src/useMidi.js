@@ -26,6 +26,9 @@ export default function useMidi({ useFlats = false } = {}) {
   // Drills need every keypress, not just finished chords; the style coach
   // also needs how hard it was hit.
   const noteHandler = useRef(null)
+  // The style coach needs releases too: how long a chord is held is the
+  // difference between leaving room for a singer and stabbing at the keys.
+  const noteOffHandler = useRef(null)
   const soundOn = useRef(sound)
   soundOn.current = sound
 
@@ -47,6 +50,7 @@ export default function useMidi({ useFlats = false } = {}) {
         },
         onNoteOff: (note) => {
           if (soundOn.current) midiNoteOff(note)
+          noteOffHandler.current?.(note)
         },
         onHeld: setHeld,
         onCommit: (notes) => commitHandler.current?.(notes),
@@ -70,6 +74,10 @@ export default function useMidi({ useFlats = false } = {}) {
     noteHandler.current = handler
   }, [])
 
+  const onNoteOff = useCallback((handler) => {
+    noteOffHandler.current = handler
+  }, [])
+
   const chord = identifyChord(held, { useFlats })
 
   return {
@@ -82,6 +90,7 @@ export default function useMidi({ useFlats = false } = {}) {
     connect,
     onCommit,
     onNote,
+    onNoteOff,
     sound,
     setSound,
     ready,
