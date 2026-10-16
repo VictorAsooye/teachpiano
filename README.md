@@ -500,3 +500,46 @@ fragile thing, and polling gives you a real progress bar for free.
   finishes; only the resulting chord/key data is stored.
 - Keep this as a personal practice tool. Downloading audio for your own analysis is the
   same use case as Chord AI or Moises; redistributing song audio is not.
+
+---
+
+## Deploying
+
+The site is `VictorAsooye/teachpiano` on GitHub, served at **teachpiano.app**.
+
+Pushing to `main` is the whole deploy: `.github/workflows/deploy.yml` builds
+`frontend/` and publishes it to GitHub Pages. `frontend/public/CNAME` carries
+the domain into the build, which is what tells Pages the custom domain belongs
+to this site.
+
+Only the frontend ships. The backend needs a server, a persistent disk and a
+residential IP (YouTube blocks datacenter ranges), so song decoding stays local
+behind `Song Decoder.bat`. The app detects the missing server and hides "From a
+song" by itself.
+
+### First-time setup
+
+```
+git push -u origin main          # approve the GitHub sign-in popup
+```
+
+Then in the repo, **Settings → Pages → Source: GitHub Actions**, and set the
+custom domain to `teachpiano.app`.
+
+### DNS at Namecheap
+
+Advanced DNS → remove the two parking records, then:
+
+| Type  | Host | Value                   |
+| ----- | ---- | ----------------------- |
+| A     | @    | 185.199.108.153         |
+| A     | @    | 185.199.109.153         |
+| A     | @    | 185.199.110.153         |
+| A     | @    | 185.199.111.153         |
+| CNAME | www  | victorasooye.github.io. |
+
+**`.app` is HSTS-preloaded**, so browsers refuse plain HTTP for it outright.
+Between repointing the DNS and GitHub issuing the TLS certificate the domain is
+not slow or ugly, it is *unreachable* — no holding page, no error. Usually
+fifteen minutes to a few hours. Tick **Enforce HTTPS** in the Pages settings
+once the certificate appears.
